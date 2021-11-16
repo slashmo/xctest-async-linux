@@ -6,31 +6,20 @@ jobs:
   test:
     runs-on: ubuntu-20.04
     steps:
-    - name: Install Swift system dependencies
-      run: >
-        sudo apt-get install
-        binutils git gnupg2 libc6-dev libcurl4 libedit2 libgcc-9-dev libpython2.7
-        libsqlite3-0 libstdc++-9-dev libxml2 libz3-dev pkg-config tzdata uuid-dev 
-        zlib1g-dev
-    - name: Import Swift Signing Keys
-      run: wget -q -O - https://swift.org/keys/all-keys.asc | gpg --import -
-
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Define Swift Toolchain
-      run: echo "SWIFT_TOOLCHAIN=$(cat .swift-version)" >> $GITHUB_ENV
+    - name: Cache Swift Toolchain
+      id: swift-toolchain-cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/share/swift-toolchain
+        key: ${{ runner.os }}-${{ hashFiles('.swift-version') }}
 
-    - name: Download Swift Toolchain
-      run: wget https://download.swift.org/development/ubuntu2004/$SWIFT_TOOLCHAIN/$SWIFT_TOOLCHAIN-ubuntu20.04.tar.gz
-    - name: Verify Swift Toolchain Signature 
-      run: |
-        wget https://download.swift.org/development/ubuntu2004/$SWIFT_TOOLCHAIN/$SWIFT_TOOLCHAIN-ubuntu20.04.tar.gz.sig
-        gpg --verify $SWIFT_TOOLCHAIN-ubuntu20.04.tar.gz.sig
     - name: Install Swift Toolchain
-      run: |
-        tar xzf $SWIFT_TOOLCHAIN-ubuntu20.04.tar.gz
-        echo "PATH=${GITHUB_WORKSPACE}/$SWIFT_TOOLCHAIN-ubuntu20.04/usr/bin:${PATH}" >> $GITHUB_ENV
+      run: ./scripts/install-swift.sh
+
     - name: Print Swift Version
       run: swift --version
 
