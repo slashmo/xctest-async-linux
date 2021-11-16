@@ -1,8 +1,27 @@
-#!/bin/sh
-lsb_release -rs
+#!/bin/bash
 
-TOOLCHAIN=$(cat .swift-version)
-TOOLCHAIN_BASE_URL=https://download.swift.org/development/ubuntu2004/$TOOLCHAIN
+UBUNTU_VERSION=$(lsb_release -rs)
+echo $UBUNTU_VERSION
+echo $SWIFT_VERSION
+
+if [ $UBUNTU_VERSION != "16.04" ] && [ $UBUNTU_VERSION != "18.04" ] && [ $UBUNTU_VERSION != "20.04" ]; then
+    echo "No Swift Toolchain available for Ubuntu version '$UBUNTU_VERSION'."
+    echo "Visit https://swift.org/download for more information."
+    exit 1;
+fi
+
+if [[ $SWIFT_VERSION == swift-DEVELOPMENT-SNAPSHOT* ]]; then
+    TOOLCHAIN_BASE_URL="https://download.swift.org/development/ubuntu${UBUNTU_VERSION//[.]/}/$SWIFT_VERSION"
+    TOOLCHAIN_PATH="$SWIFT_VERSION-ubuntu$UBUNTU_VERSION"
+else
+    TOOLCHAIN_BASE_URL="https://download.swift.org/swift-$SWIFT_VERSION-release/ubuntu${UBUNTU_VERSION//[.]/}/swift-$SWIFT_VERSION-RELEASE"
+    TOOLCHAIN_PATH="swift-$SWIFT_VERSION-RELEASE-ubuntu$UBUNTU_VERSION"
+fi
+
+TOOLCHAIN_TAR="$TOOLCHAIN_PATH.tar.gz"
+TOOLCHAIN_SIG="$TOOLCHAIN_TAR.sig"
+TOOLCHAIN_TAR_URL="$TOOLCHAIN_BASE_URL/$TOOLCHAIN_TAR"
+TOOLCHAIN_SIG_URL="$TOOLCHAIN_BASE_URL/$TOOLCHAIN_SIG"
 
 echo "Installing system dependencies 📦"
 sudo apt-get install \
@@ -14,20 +33,19 @@ if [ -d "/usr/share/swift-toolchain" ]; then
 else
     echo "Reading toolchain version from .swift-version 📄"
     echo "Detected Swift toolchain version '$(cat .swift-version)' 📄"
-    echo "TOOLCHAIN=$TOOLCHAIN" >> $GITHUB_ENV
 
     echo "Downloading Swift toolchain ☁️"
-    wget $TOOLCHAIN_BASE_URL/$TOOLCHAIN-ubuntu20.04.tar.gz
+    wget $TOOLCHAIN_TAR_URL
 
     echo "Verifying Swift toolchain 🔑"
     wget -q -O - https://swift.org/keys/all-keys.asc | gpg --import -
-    wget $TOOLCHAIN_BASE_URL/$TOOLCHAIN-ubuntu20.04.tar.gz.sig
-    gpg --verify $TOOLCHAIN-ubuntu20.04.tar.gz.sig
+    wget $TOOLCHAIN_SIG_URL
+    gpg --verify $TOOLCHAIN_SIG
 
     echo "Installing Swift toolchain 💻"
-    tar xzf $TOOLCHAIN-ubuntu20.04.tar.gz
+    tar xzf $TOOLCHAIN_TAR
 
-    mv $TOOLCHAIN-ubuntu20.04 /usr/share/swift-toolchain
+    mv $TOOLCHAIN_PATH /usr/share/swift-toolchain
     echo "Successfully installed Swift toolchain 🎉"
 fi
 
