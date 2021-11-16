@@ -1,10 +1,8 @@
 #!/bin/bash
 
 UBUNTU_VERSION=$(lsb_release -rs)
-echo $UBUNTU_VERSION
-echo $SWIFT_VERSION
 
-if [ $UBUNTU_VERSION != "16.04" ] && [ $UBUNTU_VERSION != "18.04" ] && [ $UBUNTU_VERSION != "20.04" ]; then
+if [ $UBUNTU_VERSION != "18.04" ] && [ $UBUNTU_VERSION != "20.04" ]; then
     echo "No Swift Toolchain available for Ubuntu version '$UBUNTU_VERSION'."
     echo "Visit https://swift.org/download for more information."
     exit 1;

@@ -10,25 +10,15 @@ jobs:
         os: [ubuntu-18.04, ubuntu-20.04]
         swift: [swift-DEVELOPMENT-SNAPSHOT-2021-11-12-a]
     runs-on: ${{ matrix.os }}
-    env:
-      SWIFT_VERSION: ${{ matrix.swift }}
+
     steps:
+    - name: Install Swift
+      uses: slashmo/install-swift@main
+      with:
+        version: ${{ matrix.swift }}
+
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Cache Swift Toolchain
-      id: swift-toolchain-cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          /usr/share/swift-toolchain
-        key: ${{ runner.os }}-${{ matrix.swift }}
-
-    - name: Install Swift Toolchain
-      run: ./scripts/install-swift.sh
-
-    - name: Print Swift Version
-      run: swift --version
-
-    - name: Run Tests
+      - name: Run Tests
       run: swift test --parallel
