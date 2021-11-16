@@ -1,0 +1,45 @@
+name: Test
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install Swift system dependencies
+      run: >
+        sudo apt-get install
+        binutils
+        git
+        gnupg2
+        libc6-dev
+        libcurl4
+        libedit2
+        libgcc-9-dev
+        libpython2.7
+        libsqlite3-0
+        libstdc++-9-dev
+        libxml2
+        libz3-dev
+        pkg-config
+        tzdata
+        uuid-dev
+        zlib1g-dev
+    - name: Import Swift signing keys
+      run: wget -q -O - https://swift.org/keys/all-keys.asc | gpg --import -
+    - name: Install Swift 'main' toolchain
+      run: |
+        wget https://download.swift.org/development/ubuntu2004/swift-DEVELOPMENT-SNAPSHOT-2021-11-12-a/swift-DEVELOPMENT-SNAPSHOT-2021-11-12-a-ubuntu20.04.tar.gz
+        wget https://download.swift.org/development/ubuntu2004/swift-DEVELOPMENT-SNAPSHOT-2021-11-12-a/swift-DEVELOPMENT-SNAPSHOT-2021-11-12-a-ubuntu20.04.tar.gz.sig
+        gpg --verify swift-DEVELOPMENT-SNAPSHOT-2021-11-12-a-ubuntu20.04.tar.gz.sig
+        tar xzf swift-DEVELOPMENT-SNAPSHOT-2021-11-12-a-ubuntu20.04.tar.gz
+        echo "PATH=${GITHUB_WORKSPACE}/swift-DEVELOPMENT-SNAPSHOT-2021-11-12-a-ubuntu20.04/usr/bin:${PATH}" >> $GITHUB_ENV
+    - name: Print Swift Version
+      run: |
+        echo $PATH
+        which swift
+        swift --version
+    # - name: Run Tests
+    #   run: swift test --parallel
